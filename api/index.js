@@ -9,7 +9,7 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors({ origin: 'https://catalystcrm.vercel.app', credentials: true }));
+app.use(cors({ origin: 'https://catalystcrm-3pod.vercel.app', credentials: true }));
 
 // API routes
 const apiRouter = require('../backend/routes'); // aggregates all backend routers
