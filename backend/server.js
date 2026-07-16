@@ -70,10 +70,11 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: err.message || 'Internal Server Error' });
 });
 
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+// Root route for health check / base URL
+app.get('/', (req, res) => {
+  res.send('🚀 API is up and running');
 });
+
+// Vercel handles the server start; we export the app without calling listen.
 
 module.exports = app;
