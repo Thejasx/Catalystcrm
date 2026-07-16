@@ -1,8 +1,15 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import axios from 'axios';
 
 const AuthContext = createContext(null);
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://catalystcrm.vercel.app/api';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://catalystcrm-3pod.vercel.app/api';
+
+// Create an axios instance with the base URL
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -22,27 +29,19 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
+      const response = await api.post('/auth/login', { username, password });
+      const data = response.data;
 
       localStorage.setItem('crm_user', JSON.stringify(data.user));
       localStorage.setItem('crm_token', data.token);
-      
+
       setUser(data.user);
       setToken(data.token);
-      
+
       return { success: true };
     } catch (error) {
-      return { success: false, message: error.message };
+      const message = error.response?.data?.message || error.message || 'Login failed';
+      return { success: false, message };
     }
   };
 
@@ -54,36 +53,27 @@ export const AuthProvider = ({ children }) => {
   };
 
   const authFetch = async (url, options = {}) => {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...options.headers
+    const config = {
+      url,
+      method: options.method || 'GET',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      },
+      data: options.body ? JSON.parse(options.body) : undefined,
     };
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+    try {
+      const res = await api(config);
+      return res;
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        logout();
+      }
+      throw error;
     }
-
-    const res = await fetch(`${API_BASE_URL}${url}`, {
-      ...options,
-      headers
-    });
-
-    if (res.status === 401) {
-      // Auto logout if token expires
-      logout();
-    }
-
-    return res;
   };
 
-  const value = {
-    user,
-    token,
-    loading,
-    login,
-    logout,
-    authFetch
-  };
+  const value = { user, token, loading, login, logout, authFetch };
 
   return (
     <AuthContext.Provider value={value}>
@@ -93,3 +83,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+
+
