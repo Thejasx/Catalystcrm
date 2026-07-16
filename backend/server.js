@@ -77,4 +77,6 @@ app.get('/', (req, res) => {
 
 // Vercel handles the server start; we export the app without calling listen.
 
-module.exports = app;
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: 'Endpoint not found' });
+});
