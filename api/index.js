@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-require('dotenv').config({ path: require('path').join(__dirname, 'backend', '.env') });
+// dotenv config removed for Vercel
 
 // Establish MongoDB connection
 require('./backend/config/mongoose');
