@@ -52,6 +52,8 @@ db.once('open', async () => {
 });
 
 // Mount routes under /api
+const pingRoutes = require('./backend/routes/ping');
+app.use('/api', pingRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/leads', leadRoutes);
